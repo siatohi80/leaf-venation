@@ -1,0 +1,299 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaf Venation for Grasshopper</title>
+<meta name="description" content="A Grasshopper plugin for Rhino 8 that grows realistic leaf vein patterns, with a step-by-step tutorial and example files.">
+<link rel="icon" href="img/icon48.png">
+<style>
+:root{
+  --bg:#f7f8f4; --surface:#ffffff; --text:#1d2a1b; --muted:#5b6b57; --line:#dfe5d8;
+  --accent:#3d6b35; --accent-soft:#e6efe1; --code:#eef2ea;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121611; --surface:#1a2018; --text:#e4ebe0; --muted:#9aab95; --line:#2c3629;
+    --accent:#9fcb8f; --accent-soft:#223020; --code:#232b20;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--accent)}
+code{background:var(--code);padding:.1em .35em;border-radius:4px;font-size:.92em}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+header.hero{border-bottom:1px solid var(--line);background:var(--surface)}
+.hero .wrap{padding-top:40px;padding-bottom:32px}
+.brand{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.95rem}
+.brand img{width:32px;height:32px}
+h1{font-size:clamp(1.9rem,4vw,2.6rem);line-height:1.15;margin:.4em 0 .3em}
+.lead{font-size:1.1rem;color:var(--muted);max-width:640px;margin:0}
+.buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.btn{display:inline-block;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600;
+  border:1px solid var(--accent)}
+.btn.primary{background:var(--accent);color:var(--surface)}
+.btn.secondary{color:var(--accent)}
+nav.toc{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line)}
+nav.toc .wrap{display:flex;gap:4px;overflow-x:auto;padding-top:8px;padding-bottom:8px;scrollbar-width:none}
+nav.toc a{white-space:nowrap;text-decoration:none;color:var(--muted);font-size:.9rem;padding:4px 10px;border-radius:999px}
+nav.toc a:hover{background:var(--accent-soft);color:var(--text)}
+main section{padding:36px 0 8px;border-bottom:1px solid var(--line)}
+main section:last-child{border-bottom:0}
+h2{font-size:1.5rem;margin:0 0 .5em}
+.step{display:inline-block;font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:4px}
+figure{margin:20px 0;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+figure img{display:block;width:100%;height:auto}
+figcaption{font-size:.88rem;color:var(--muted);padding:8px 12px;background:var(--surface);border-top:1px solid var(--line)}
+.tablewrap{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:.95rem;background:var(--surface)}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft)}
+.note{background:var(--accent-soft);border-left:4px solid var(--accent);padding:12px 14px;border-radius:6px;margin:16px 0}
+.example{display:flex;gap:10px;align-items:baseline;font-size:.95rem;color:var(--muted);margin:14px 0 20px}
+.example b{color:var(--text)}
+ol li,ul li{margin:.3em 0}
+footer{padding:32px 0 48px;color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brand"><img src="img/icon48.png" alt="">Grasshopper plugin for Rhino 8</div>
+    <h1>Leaf Venation</h1>
+    <p class="lead">Grow realistic leaf veins in Grasshopper, change the leaf's shape, and turn the veins into one mesh or a set of render textures.</p>
+    <div class="buttons">
+      <a class="btn primary" href="downloads/LeafVenation.gha" download>Download the plugin (.gha)</a>
+      <a class="btn secondary" href="downloads/make_examples.py" download>Download the example builder</a>
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Tutorial steps">
+  <div class="wrap">
+    <a href="#overview">Overview</a><a href="#examples">Examples</a><a href="#install">1 Install</a>
+    <a href="#presets">2 Presets</a><a href="#outline">3 Leaf shape</a><a href="#seeds">4 Seeds</a>
+    <a href="#holes">5 Holes</a><a href="#surface">6 Surfaces</a><a href="#settings">7 Settings</a>
+    <a href="#mesh">8 Vein Mesh</a><a href="#texture">9 Textures</a><a href="#help">Troubleshooting</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<section id="overview">
+  <h2>Overview</h2>
+  <p>Leaf Venation grows veins the way real leaves do: vein tips grow toward hormone sources scattered in the blade, following Runions et al., SIGGRAPH 2005. Everything is on the <b>Leaf</b> tab, <b>Venation</b> panel.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Component</th><th>What it does</th><th>Main output</th></tr>
+    <tr><td>Leaf Outline</td><td>Draws a parametric leaf shape, with optional teeth</td><td>Outline curve, Base point</td></tr>
+    <tr><td>Leaf Venation</td><td>Grows the veins inside an outline or on a surface</td><td>Venation, Segments, Veins</td></tr>
+    <tr><td>Vein Mesh</td><td>Turns the veins into one joined, tapered mesh</td><td>Mesh</td></tr>
+    <tr><td>Leaf Texture</td><td>Writes colour, bump, normal and cut-out images</td><td>PNG files and a mapped leaf mesh</td></tr>
+  </table></div>
+  <p>The usual chain is <b>Leaf Outline → Leaf Venation → Vein Mesh</b> (or <b>→ Leaf Texture</b>). Leaf Venation also works on its own.</p>
+  <figure><img src="img/banner_all_presets.png" alt="Six leaves grown with the six presets"><figcaption>The six built-in presets.</figcaption></figure>
+</section>
+
+<section id="examples">
+  <h2>Example files</h2>
+  <p>Each step from 2 to 9 has a ready-made Grasshopper file, already wired, with sliders on the values worth trying and a note panel. A small script builds them on your PC, so they always match your installed plugin.</p>
+  <ol>
+    <li>Install the plugin (step 1) and restart Rhino.</li>
+    <li>Download <a href="downloads/make_examples.py" download><code>make_examples.py</code></a>.</li>
+    <li>In Rhino, type <code>ScriptEditor</code>, open the file and press Run. Or type <code>-RunPythonScript</code> and pick it.</li>
+    <li>Open the files from the new <b>Leaf Venation Examples</b> folder on your Desktop.</li>
+  </ol>
+  <p>The script prints which files it saved. If one fails, it names the step and the reason.</p>
+</section>
+
+<section id="install">
+  <span class="step">Step 1</span>
+  <h2>Install</h2>
+  <p>The plugin needs Rhino 8 for Windows. It does not load in Rhino 7.</p>
+  <p><b>From the Package Manager:</b> run <code>_PackageManager</code> in Rhino, search for <b>leafvenation</b>, click Install, then restart Rhino.</p>
+  <p><b>By hand:</b></p>
+  <ol>
+    <li>Close Rhino.</li>
+    <li>Copy <code>LeafVenation.gha</code> to <code>%APPDATA%\Grasshopper\Libraries\</code>. In Grasshopper this is <i>File › Special Folders › Components Folder</i>.</li>
+    <li>Right-click the file, choose <i>Properties</i>, and tick <b>Unblock</b> if Windows shows it.</li>
+    <li>Start Rhino and run <code>Grasshopper</code>. You should see a <b>Leaf</b> tab with four components.</li>
+  </ol>
+</section>
+
+<section id="presets">
+  <span class="step">Step 2</span>
+  <h2>Your first leaf from a preset</h2>
+  <p>Drop <b>Leaf Venation</b> on the canvas with nothing connected. It already grows preset 1, an ovate leaf with open veins.</p>
+  <ol>
+    <li>Right-click the <b>Preset</b> input and pick a preset by name, or connect an integer slider from 1 to 6.</li>
+    <li>Turn off the component's own preview, then connect <b>Segments</b> to a <b>Curve</b> parameter to see the veins as lines.</li>
+    <li>Read <b>Info</b> in a Panel. It shows the node and loop counts, the solve time and every value actually used.</li>
+  </ol>
+  <div class="tablewrap"><table>
+    <tr><th>Preset</th><th>What you get</th></tr>
+    <tr><td>1 Open, marginal growth</td><td>Tree-like veins in a leaf that grows from its edge</td></tr>
+    <tr><td>2 Open, dense, static</td><td>Many fine open veins in a full-size leaf</td></tr>
+    <tr><td>3 Closed, toothed</td><td>Looping veins in a leaf with teeth</td></tr>
+    <tr><td>4 Closed, isogonic</td><td>Loops, with the leaf growing evenly everywhere</td></tr>
+    <tr><td>5 Ginkgo fan</td><td>Fan-shaped veins spreading from one point</td></tr>
+    <tr><td>6 Grass, parallel</td><td>Parallel veins from several seeds along the base</td></tr>
+  </table></div>
+  <p>The preset fills in every input you leave unconnected. Anything you connect overrides just that value, so you can start from a preset and change one thing at a time.</p>
+  <p class="example"><b>Example file:</b> Step 2 - Presets.gh</p>
+</section>
+
+<section id="outline">
+  <span class="step">Step 3</span>
+  <h2>Your own leaf shape</h2>
+  <p>Connect <b>Leaf Outline → Outline</b> to <b>Leaf Venation → Boundary</b>, and <b>Base</b> to <b>Seeds</b>. Preset distances scale to the outline's size, so the pattern looks the same on a 10-unit or a 1000-unit leaf.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Input</th><th>Default</th><th>What it changes</th></tr>
+    <tr><td>Length, Width</td><td>100, 55</td><td>Blade size. The leaf sits in the XY plane, base at the origin, tip toward +Y.</td></tr>
+    <tr><td>Shape</td><td>0.4</td><td>Where the widest point sits, from 0.2 (near the base) to 0.8 (near the tip)</td></tr>
+    <tr><td>Tip</td><td>1.2</td><td>0.5 is rounded, 2 is long and pointed</td></tr>
+    <tr><td>Teeth, ToothAmp</td><td>0, 2.5</td><td>Number of teeth per side and their depth. 0 is a smooth edge.</td></tr>
+    <tr><td>Teeth2, Tooth2Amp</td><td>0, 0.8</td><td>Smaller teeth on each tooth (doubly toothed edge)</td></tr>
+    <tr><td>ToothAngle</td><td>0</td><td>Degrees the teeth lean toward the tip. 20 to 45 looks natural.</td></tr>
+    <tr><td>ToothSkew</td><td>0.5</td><td>0.5 is symmetric. 0.7 to 0.85 gives a long lower edge and a steep upper edge, like a saw.</td></tr>
+  </table></div>
+  <figure><img src="img/tooth_angle_check.png" alt="Teeth with different angles and skews"><figcaption>Tooth angle and skew.</figcaption></figure>
+  <p>A good natural toothed leaf to start from: Teeth 12, ToothAmp 3.5, ToothAngle 30, ToothSkew 0.75.</p>
+  <p><b>Any curve works too.</b> Draw a closed planar curve in Rhino, reference it in a <b>Curve</b> parameter, and connect it to <b>Boundary</b>. It can lie in any plane. If you leave Seeds empty, the veins start at the outline point nearest the bottom centre.</p>
+  <p class="example"><b>Example file:</b> Step 3 - Leaf Outline.gh</p>
+</section>
+
+<section id="seeds">
+  <span class="step">Step 4</span>
+  <h2>Choose where the veins start</h2>
+  <p>The veins grow out from the <b>Seeds</b> points. <b>Base</b> is the centre the leaf grows from in the marginal and uniform growth modes; leave it empty and it uses the first seed.</p>
+  <ul>
+    <li><b>One seed</b> at the petiole gives a normal leaf. Put it on the edge of the outline.</li>
+    <li><b>A seed inside the blade</b> makes veins radiate from that point.</li>
+    <li><b>Several seeds along the base</b> with Growth 3 give parallel, grass-like veins.</li>
+    <li>Seeds off the plane or surface are pulled onto it.</li>
+  </ul>
+  <p><b>Moving the seed with an MD Slider</b> keeps it on the leaf:</p>
+  <ol>
+    <li>Turn the outline into a surface with <b>Boundary Surfaces</b> (skip this if you already use a Surface).</li>
+    <li>Connect it to <b>S</b> of <b>Evaluate Surface</b> and right-click S › <i>Reparameterize</i>, so 0 to 1 covers the leaf.</li>
+    <li>Add an <b>MD Slider</b> and connect it to the <b>uv</b> input.</li>
+    <li>Connect <b>Evaluate Surface → P</b> to <b>Seeds</b>.</li>
+  </ol>
+  <p>Drag the slider and the veins regrow from the new point. Evaluate Surface works on the untrimmed square, so near the corners the point can land outside the leaf; then few or no veins grow and the component warns "No veins grew". To pin the seed exactly to the edge, use <b>Curve Closest Point</b> on the outline with the slider's point and feed its <b>P</b> to Seeds.</p>
+  <p class="example"><b>Example file:</b> Step 4 - Move the seed.gh</p>
+</section>
+
+<section id="holes">
+  <span class="step">Step 5</span>
+  <h2>Holes and rim veins</h2>
+  <p>Connect closed curves that sit inside the outline, on the same plane, to <b>Holes</b>. Veins grow around holes and never cross them.</p>
+  <ul>
+    <li><b>RimHoles = True</b>: a hole's edge becomes a vein as soon as a vein reaches it, and new veins sprout from it.</li>
+    <li><b>RimMargin = True</b>: the leaf edge becomes a vein once the leaf is full size.</li>
+    <li>Rim veins stay connected to the rest of the network, so Vein Mesh still gives one piece.</li>
+  </ul>
+  <figure><img src="img/holes.png" alt="Leaves with holes, without and with rim veins"><figcaption>Leaves with holes, without and with rim veins.</figcaption></figure>
+  <p>The <b>Outline</b> output returns the grown outline first, then each hole, which is handy for building the blade with <b>Boundary Surfaces</b>.</p>
+  <p class="example"><b>Example file:</b> Step 5 - Holes.gh</p>
+</section>
+
+<section id="surface">
+  <span class="step">Step 6</span>
+  <h2>Grow on a curved surface</h2>
+  <p>Connect a surface or a single-face Brep to <b>Surface</b>. It can be flat or curved, trimmed or not.</p>
+  <ul>
+    <li>The surface's outer edge is the leaf outline and its inner trims are holes.</li>
+    <li>A <b>Boundary</b> curve lying on the surface replaces the outer edge. <b>Holes</b> curves on the surface add more holes.</li>
+    <li>If the Brep has several faces, only the first is used and the component warns you.</li>
+  </ul>
+  <p>On a curved surface the veins grow in the surface's own UV space, stretched so one unit is about one model unit, and are then mapped onto it. This works well on gently bent or domed surfaces. A surface whose UV lines are very uneven stretches the pattern the same way.</p>
+  <p>Tip: project a flat leaf outline onto the curved surface with <b>Project</b> and connect the result to Boundary.</p>
+  <p class="example"><b>Example file:</b> Step 6 - Curved surface.gh</p>
+</section>
+
+<section id="settings">
+  <span class="step">Step 7</span>
+  <h2>The settings worth changing first</h2>
+  <p>Start from the preset closest to what you want and override one value at a time.</p>
+  <div class="tablewrap"><table>
+    <tr><th>Input</th><th>What it does</th><th>Try</th></tr>
+    <tr><td>Closed</td><td>False grows an open tree; True makes veins join into loops</td><td>Switch it on any preset</td></tr>
+    <tr><td>KillDist</td><td>How close a vein must get before a source dies. Lower gives denser veins and more loops.</td><td>Halve or double the preset value</td></tr>
+    <tr><td>D</td><td>Length of each vein step. Smaller gives smoother, finer veins and a slower solve.</td><td>Half to 1.5 times the preset value</td></tr>
+    <tr><td>Darts</td><td>Sources added per step. More gives a more regular, even pattern.</td><td>40 to 500</td></tr>
+    <tr><td>Growth</td><td>0 static, 1 grows from the edge, 2 grows evenly, 3 grows in length only (grass)</td><td>Right-click to pick by name</td></tr>
+    <tr><td>Iterations</td><td>Number of steps. Too few leaves the leaf unfinished.</td><td>Raise it if the veins stop short</td></tr>
+    <tr><td>Seed</td><td>The random seed. Same settings, a different variation.</td><td>Any integer</td></tr>
+  </table></div>
+  <p>The rest (BirthS, BirthV, StartScale, GrowSteps, MurrayN, MinRadius) are for fine tuning. Slower growth (larger GrowSteps) gives more fan-like veins.</p>
+  <div class="note">Values you connect are used exactly as given, not scaled to the leaf size, so check the scaled preset values in <b>Info</b> before you type your own.</div>
+  <p class="example"><b>Example file:</b> Step 7 - Key settings.gh</p>
+</section>
+
+<section id="mesh">
+  <span class="step">Step 8</span>
+  <h2>Turn the veins into a mesh</h2>
+  <p>Connect <b>Leaf Venation → Venation</b> to <b>Vein Mesh → Venation</b>. With the defaults you get one connected, closed mesh around the whole network. It thins from the main veins out to the tips and has smooth fillets where veins meet, like Rhino's MultiPipe.</p>
+  <figure><img src="img/joined_vein_skin.png" alt="One joined vein mesh"><figcaption>One joined vein skin.</figcaption></figure>
+  <div class="tablewrap"><table>
+    <tr><th>Input</th><th>Default</th><th>Use it to</th></tr>
+    <tr><td>Joined</td><td>True</td><td>False builds fast separate tubes per branch instead of one skin</td></tr>
+    <tr><td>MaxRadius</td><td>empty</td><td>Set the main vein's radius yourself. Empty uses Murray's-law radii.</td></tr>
+    <tr><td>MinRadius</td><td>empty</td><td>Set the tip radius, when MaxRadius is set</td></tr>
+    <tr><td>Taper</td><td>1</td><td>Above 1, only the main veins stay thick</td></tr>
+    <tr><td>Scale</td><td>1</td><td>Make every vein thicker or thinner</td></tr>
+    <tr><td>CellSize</td><td>0 (auto)</td><td>Smaller gives a finer skin and a slower solve</td></tr>
+    <tr><td>Half</td><td>False</td><td>Keep only the top half, for raised veins on a flat blade</td></tr>
+  </table></div>
+  <p>For a 3D leaf: <b>Boundary Surfaces</b> on the outline, <b>Extrude</b> it a little for the blade, and add Vein Mesh with <b>Half = True</b> on top.</p>
+  <p class="example"><b>Example file:</b> Step 8 - Vein Mesh.gh</p>
+</section>
+
+<section id="texture">
+  <span class="step">Step 9</span>
+  <h2>Textures for rendering</h2>
+  <p>Connect <b>Venation</b> to <b>Leaf Texture</b>. Save your .gh file first: with Folder empty, the images go into a <code>leaf-textures</code> folder next to it.</p>
+  <div class="tablewrap"><table>
+    <tr><th>File</th><th>Use in a material as</th></tr>
+    <tr><td><code>leaf_color.png</code></td><td>Base colour</td></tr>
+    <tr><td><code>leaf_height.png</code></td><td>Bump (thicker veins are higher)</td></tr>
+    <tr><td><code>leaf_normal.png</code></td><td>Normal map (OpenGL, +Y)</td></tr>
+    <tr><td><code>leaf_alpha.png</code></td><td>Opacity or cut-out. Holes are black.</td></tr>
+  </table></div>
+  <ol>
+    <li>Bake the <b>Leaf</b> mesh into Rhino. Its texture coordinates already match the images.</li>
+    <li>Create a <b>Physically Based</b> material and load the colour, normal and alpha images into its matching slots.</li>
+    <li>Assign it to the baked mesh. No texture mapping setup is needed.</li>
+  </ol>
+  <p>Set <b>Write</b> to False while you adjust the venation, so files are not rewritten on every change.</p>
+  <p class="example"><b>Example file:</b> Step 9 - Leaf Texture.gh</p>
+</section>
+
+<section id="help">
+  <h2>Troubleshooting</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Problem</th><th>Fix</th></tr>
+    <tr><td>No Leaf tab</td><td>Check the .gha is unblocked and you are in Rhino 8, not Rhino 7</td></tr>
+    <tr><td>"No veins grew"</td><td>Move the seed onto the outline edge or inside the leaf, and out of any hole</td></tr>
+    <tr><td>Veins stop short of the edge</td><td>Raise Iterations</td></tr>
+    <tr><td>Solve is slow</td><td>Raise D or KillDist, lower Darts, or raise CellSize in Vein Mesh</td></tr>
+    <tr><td>Vein Mesh is in pieces or has odd edges</td><td>Lower CellSize</td></tr>
+    <tr><td>Pattern looks stretched on a surface</td><td>Rebuild the surface so its UV lines are even, or use a flat outline and deform it afterwards</td></tr>
+    <tr><td>Textures not written</td><td>Save the .gh file, or set a Folder, and check Write is True</td></tr>
+  </table></div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Based on Adam Runions, Martin Fuhrer, Brendan Lane, Pavol Federl, Anne-Gaëlle Rolland-Lagan and Przemyslaw Prusinkiewicz, <a href="https://doi.org/10.1145/1073204.1073251">Modeling and visualization of leaf venation patterns</a>, ACM Transactions on Graphics 24(3), 702–711 (SIGGRAPH 2005). An independent implementation, not affiliated with or endorsed by the authors.</p>
+    <p>© 2026 Siavash Tohidi. MIT License.</p>
+  </div>
+</footer>
+
+</body>
+</html>
