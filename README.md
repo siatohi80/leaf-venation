@@ -1,7 +1,10 @@
-# Leaf Venation for Grasshopper
+# Leaf Venation for Grasshopper and Blender
 
 Tutorial and downloads for the Leaf Venation Grasshopper plugin (Rhino 8):
 https://siatohi80.github.io/leaf-venation/
+
+The Blender Geometry Nodes version and its tutorial are at
+https://siatohi80.github.io/leaf-venation/blender/
 
 This repository holds only the website. The site is in `docs/`.
 

@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Leaf Venation for Blender</title>
+<meta name="description" content="Grow realistic leaf vein patterns with Blender Geometry Nodes: a step-by-step tutorial and a ready-made demo file.">
+<link rel="icon" href="img/icon48.png">
+<style>
+:root{
+  --bg:#f7f8f4; --surface:#ffffff; --text:#1d2a1b; --muted:#5b6b57; --line:#dfe5d8;
+  --accent:#3d6b35; --accent-soft:#e6efe1; --code:#eef2ea;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121611; --surface:#1a2018; --text:#e4ebe0; --muted:#9aab95; --line:#2c3629;
+    --accent:#9fcb8f; --accent-soft:#223020; --code:#232b20;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+a{color:var(--accent)}
+code{background:var(--code);padding:.1em .35em;border-radius:4px;font-size:.92em}
+.wrap{max-width:860px;margin:0 auto;padding:0 16px}
+header.hero{border-bottom:1px solid var(--line);background:var(--surface)}
+.hero .wrap{padding-top:40px;padding-bottom:32px}
+.brand{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.95rem}
+.brand img{width:32px;height:32px}
+h1{font-size:clamp(1.9rem,4vw,2.6rem);line-height:1.15;margin:.4em 0 .3em}
+.lead{font-size:1.1rem;color:var(--muted);max-width:640px;margin:0}
+.buttons{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.btn{display:inline-block;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600;
+  border:1px solid var(--accent)}
+.btn.primary{background:var(--accent);color:var(--surface)}
+.btn.secondary{color:var(--accent)}
+nav.toc{position:sticky;top:0;z-index:2;background:var(--bg);border-bottom:1px solid var(--line)}
+nav.toc .wrap{display:flex;gap:4px;overflow-x:auto;padding-top:8px;padding-bottom:8px;scrollbar-width:none}
+nav.toc a{white-space:nowrap;text-decoration:none;color:var(--muted);font-size:.9rem;padding:4px 10px;border-radius:999px}
+nav.toc a:hover{background:var(--accent-soft);color:var(--text)}
+main section{padding:36px 0 8px;border-bottom:1px solid var(--line)}
+main section:last-child{border-bottom:0}
+h2{font-size:1.5rem;margin:0 0 .5em}
+.step{display:inline-block;font-size:.8rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:4px}
+figure{margin:20px 0;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+figure img{display:block;width:100%;height:auto}
+figcaption{font-size:.88rem;color:var(--muted);padding:8px 12px;background:var(--surface);border-top:1px solid var(--line)}
+.tablewrap{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:.95rem;background:var(--surface)}
+th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--accent-soft)}
+.note{background:var(--accent-soft);border-left:4px solid var(--accent);padding:12px 14px;border-radius:6px;margin:16px 0}
+.example{display:flex;gap:10px;align-items:baseline;font-size:.95rem;color:var(--muted);margin:14px 0 20px}
+.example b{color:var(--text)}
+ol li,ul li{margin:.3em 0}
+.flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:16px 0}
+.flow span{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:.9rem}
+.flow i{color:var(--muted);font-style:normal}
+.pair{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.pair figure{margin:8px 0}
+footer{padding:32px 0 48px;color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="brand"><img src="img/icon48.png" alt="">Geometry Nodes for Blender 4.2 and later</div>
+    <h1>Leaf Venation for Blender</h1>
+    <p class="lead">Grow realistic leaf veins with Geometry Nodes, change them live from the modifier panel, animate them growing, and render them as 3D veins or as a texture.</p>
+    <div class="buttons">
+      <a class="btn primary" href="downloads/leaf_venation_demo.blend" download>Download the demo file (.blend)</a>
+      <a class="btn secondary" href="downloads/leaf_vein_textures.zip" download>Download the vein textures</a>
+      <a class="btn secondary" href="../">Grasshopper version</a>
+    </div>
+  </div>
+</header>
+
+<nav class="toc" aria-label="Tutorial steps">
+  <div class="wrap">
+    <a href="#overview">Overview</a><a href="#open">1 Open the demo</a><a href="#presets">2 Presets</a>
+    <a href="#settings">3 Settings</a><a href="#own">4 Your own leaf</a><a href="#look">5 Veins and blade</a>
+    <a href="#animate">6 Animate</a><a href="#texture">7 Textures</a><a href="#how">How it works</a><a href="#help">Troubleshooting</a>
+  </div>
+</nav>
+
+<main class="wrap">
+
+<section id="overview">
+  <h2>Overview</h2>
+  <p>Veins grow the way they do in real leaves. Vein tips grow toward hormone sources scattered in the blade, and each source disappears once a vein reaches it. This follows Runions et al., SIGGRAPH 2005. The whole simulation runs inside a Geometry Nodes <b>Repeat Zone</b>, so there is no add-on to install and no script to run. Everything ships as node groups inside one .blend file.</p>
+  <figure><img src="img/banner.jpg" alt="Three rendered leaves: open veins, looping veins, and a textured blade"><figcaption>Open veins grown in Geometry Nodes, looping veins, and a flat blade with a vein texture.</figcaption></figure>
+  <div class="tablewrap"><table>
+    <tr><th>Node group</th><th>Put it on</th><th>What it does</th></tr>
+    <tr><td>Leaf Venation</td><td>A closed curve (the leaf outline)</td><td>Grows the veins and builds the tapered vein tubes and the leaf blade</td></tr>
+    <tr><td>Leaf Venation Skin</td><td>A vein mesh</td><td>Builds the tubes and blade only. The looped presets 3 and 4 use it.</td></tr>
+    <tr><td>Leaf Venation Grow</td><td>(used inside the others)</td><td>The growth loop on its own. Its output is a vein mesh with <code>age</code> and <code>root</code> attributes.</td></tr>
+    <tr><td>Leaf Venation Skin Core</td><td>(used inside the others)</td><td>Murray's-law vein widths, tubes and blade</td></tr>
+  </table></div>
+</section>
+
+<section id="open">
+  <span class="step">Step 1</span>
+  <h2>Open the demo file</h2>
+  <ol>
+    <li>Install <a href="https://www.blender.org/download/">Blender</a> 4.2 or newer. The file was tested in 4.2 LTS and 5.0.</li>
+    <li>Download <a href="downloads/leaf_venation_demo.blend" download><code>leaf_venation_demo.blend</code></a> and open it.</li>
+    <li>Click a leaf, for example <b>Leaf GN 1</b>, and open the <b>Modifier</b> tab (the blue wrench) in the Properties editor. Every input of the <b>Leaf Venation</b> modifier is listed there.</li>
+    <li>Change <b>Random Seed</b>. The leaf regrows right away, usually in less than half a second.</li>
+  </ol>
+  <div class="note">The leaves are about 100 units long with an object scale of 0.01, so each one is 1 m in the viewport. All distances in this guide are in those 100-unit leaf units.</div>
+</section>
+
+<section id="presets">
+  <span class="step">Step 2</span>
+  <h2>The six presets</h2>
+  <figure><img src="img/all_presets_row.jpg" alt="The six preset leaves in a row"><figcaption>Presets 1 to 6, left to right.</figcaption></figure>
+  <div class="tablewrap"><table>
+    <tr><th>Object</th><th>Pattern</th><th>Live in Geometry Nodes?</th></tr>
+    <tr><td>Leaf GN 1</td><td>Open veins, leaf grows from its edge</td><td>Yes</td></tr>
+    <tr><td>Leaf GN 2</td><td>Dense open veins in a full-size leaf</td><td>Yes</td></tr>
+    <tr><td>Leaf PY 3</td><td>Looping veins in a toothed leaf</td><td>Widths, tubes and blade only</td></tr>
+    <tr><td>Leaf PY 4</td><td>Loops, leaf grows evenly everywhere</td><td>Widths, tubes and blade only</td></tr>
+    <tr><td>Leaf GN 5</td><td>Ginkgo fan</td><td>Yes</td></tr>
+    <tr><td>Leaf GN 6</td><td>Grass, parallel veins from 6 seeds</td><td>Yes</td></tr>
+  </table></div>
+  <p>The looping patterns need a neighbour test between every source and the nearby veins, and Geometry Nodes has no efficient node for that. Leaves 3 and 4 were therefore grown outside Blender and stored as vein meshes. Their <b>Leaf Venation Skin</b> modifier still lets you change widths, smoothing, the blade and the growth animation.</p>
+</section>
+
+<section id="settings">
+  <span class="step">Step 3</span>
+  <h2>The settings worth changing first</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Input</th><th>What it does</th><th>Try</th></tr>
+    <tr><td>Kill Distance</td><td>How close a vein must get before a source dies. Lower gives denser veins and more vein orders.</td><td>1 to 6</td></tr>
+    <tr><td>Source Spacing</td><td>Minimum distance between sources. Smaller gives more, finer veins.</td><td>1 to 5</td></tr>
+    <tr><td>Source Density</td><td>How many sources are tried per unit area. Higher gives a more even field and smoother veins.</td><td>0.02 to 1</td></tr>
+    <tr><td>Segment Length</td><td>Length of each vein step. Smaller gives smoother veins and a slower solve.</td><td>0.5 to 1.5</td></tr>
+    <tr><td>Growth</td><td>0 static leaf, 1 grows from the edge, 3 grows in length only (grass)</td><td>0, 1 or 3</td></tr>
+    <tr><td>Growth Steps</td><td>Steps until the leaf is full size. 0 means 70% of Iterations. Slower growth gives fan-like veins.</td><td>40 to 400</td></tr>
+    <tr><td>Iterations</td><td>Number of growth steps. Too few leaves the leaf unfinished.</td><td>Raise it if the veins stop short</td></tr>
+    <tr><td>Random Seed</td><td>Same settings, a different variation</td><td>Any integer</td></tr>
+  </table></div>
+  <figure><img src="img/kill_distance.png" alt="Three leaves with Kill Distance 1, 2.5 and 6"><figcaption>Kill Distance on preset 2. Lower values give denser veins.</figcaption></figure>
+  <figure><img src="img/source_density.png" alt="Three leaves with Source Density 0.02, 0.1 and 1"><figcaption>Source Density on preset 1. Higher values give a more regular pattern.</figcaption></figure>
+  <figure><img src="img/growth_steps.png" alt="Fan leaf with Growth Steps 40 and 400"><figcaption>Growth Steps on preset 5. Slow growth keeps the vein tips close to the edge and gives a fan.</figcaption></figure>
+  <p>The remaining inputs are <b>Vein Birth Distance</b> (a new source this close to a vein is skipped), <b>Start Scale</b> (leaf size at the first step), <b>Seed Count</b> and <b>Seed Spacing</b> (several seeds in a row along X, for grass) and <b>Base</b> (where the first vein starts and the point the leaf grows from).</p>
+</section>
+
+<section id="own">
+  <span class="step">Step 4</span>
+  <h2>Your own leaf shape</h2>
+  <p><b>The quick way:</b> select a <b>Leaf GN</b> leaf, duplicate it with <kbd>Shift</kbd>+<kbd>D</kbd>, press <kbd>Tab</kbd> and move, add or delete outline points. The veins regrow as you edit.</p>
+  <p><b>In your own file:</b></p>
+  <ol>
+    <li>Choose <i>File › Append</i>, open the demo .blend, go into <b>NodeTree</b> and append <b>Leaf Venation</b>. The groups it uses come with it.</li>
+    <li>Draw a closed curve in Top view (the XY plane). A Bezier or poly curve both work, as long as it is closed (<kbd>Alt</kbd>+<kbd>C</kbd> in Edit Mode).</li>
+    <li>Add a <b>Geometry Nodes</b> modifier to the curve and pick <b>Leaf Venation</b>.</li>
+    <li>Set <b>Base</b> to the petiole point in the curve's local coordinates. It should lie on the outline or inside it.</li>
+  </ol>
+  <div class="note">The default values assume a leaf about 100 units long. For another size, multiply Segment Length, Kill Distance, Source Spacing, Vein Birth Distance, Seed Spacing, Tip Radius and Blade Thickness by the same factor, and divide Source Density by that factor squared. An easier option is to make the curve about 100 units long in Edit Mode and scale the object down.</div>
+  <p>The outline should be visible from Base in every direction (star-shaped), which is true of almost all leaves. For a radiating pattern, place Base inside the blade.</p>
+</section>
+
+<section id="look">
+  <span class="step">Step 5</span>
+  <h2>Veins and blade</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Input</th><th>Default</th><th>What it changes</th></tr>
+    <tr><td>Tip Radius</td><td>0.15</td><td>Radius of the finest veins. Thicker veins follow Murray's law from it.</td></tr>
+    <tr><td>Murray Exponent</td><td>2.5</td><td>How fast veins thicken toward the base. 2 tapers strongly and 3 tapers gently.</td></tr>
+    <tr><td>Smooth Veins</td><td>On</td><td>Rounds off the small kinks between vein steps</td></tr>
+    <tr><td>Vein Resolution</td><td>6</td><td>Sides of each vein tube</td></tr>
+    <tr><td>Blade Thickness</td><td>0.4</td><td>Thickness of the leaf blade. The veins sit on its top face.</td></tr>
+    <tr><td>Show Blade, Show Veins</td><td>On</td><td>Turn either part off</td></tr>
+    <tr><td>Blade Material, Vein Material</td><td>Leaf Blade, Leaf Vein</td><td>Materials for the two parts</td></tr>
+    <tr><td>Graph Only</td><td>Off</td><td>Outputs the bare vein edges with a <code>radius</code> attribute, for your own node setups</td></tr>
+  </table></div>
+  <p>To use the result as ordinary geometry, for example for sculpting or export, right-click the leaf and choose <i>Convert › Mesh</i>, or apply the modifier.</p>
+</section>
+
+<section id="animate">
+  <span class="step">Step 6</span>
+  <h2>Animate the growth</h2>
+  <p>Each vein node remembers the step it grew in. <b>Age Limit</b> hides everything newer than a given step.</p>
+  <ol>
+    <li>On frame 1 set <b>Age Limit</b> to 0, hover over it and press <kbd>I</kbd> to add a keyframe.</li>
+    <li>On a later frame, for example 120, set it to the leaf's Iterations value and press <kbd>I</kbd> again.</li>
+    <li>Press play. The vein widths are recomputed on every frame, so the main veins thicken as new branches appear.</li>
+  </ol>
+  <figure><img src="img/growth_stages.png" alt="Five stages of a growing vein network"><figcaption>Preset 1 at Age Limit 30, 60, 90, 130 and 220.</figcaption></figure>
+</section>
+
+<section id="texture">
+  <span class="step">Step 7</span>
+  <h2>Textures</h2>
+  <p>For leaves that are far from the camera, or for many leaves at once, a flat blade with a vein texture is lighter than 3D tubes. The blade carries a UV map called <code>UVMap</code>. It is centred on the leaf's bounding square, and the textures use the same framing.</p>
+  <figure><img src="img/textures_all.png" alt="Six vein textures"><figcaption>The six textures in <a href="downloads/leaf_vein_textures.zip" download>leaf_vein_textures.zip</a>: white veins on a grey blade over black, 2048 px.</figcaption></figure>
+  <ol>
+    <li>Look at <b>Leaf GN 2 textured</b> in the demo. It has <b>Show Veins</b> off, and its blade material reads the packed texture.</li>
+    <li>In the Shader Editor, the texture goes through a <b>Map Range</b> (From Min 0.27) into the factor of a <b>Mix</b> between the leaf and vein colours, and into a <b>Bump</b> node for relief.</li>
+    <li>To texture another preset, copy that material, then swap in the matching image from the zip. Use <i>Non-Color</i> as the image's colour space.</li>
+  </ol>
+  <figure><img src="img/closeup_textured_leaf.jpg" alt="Flat leaf blade with a vein texture"><figcaption>A flat blade with the preset 2 texture, using colour plus bump.</figcaption></figure>
+  <p>The same PNGs also work in Rhino and other renderers with a planar mapping over the leaf's bounding square.</p>
+</section>
+
+<section id="how">
+  <h2>How it works</h2>
+  <p>Open the <b>Leaf Venation Grow</b> group in the Geometry Node editor to follow along.</p>
+  <div class="flow">
+    <span>Fill Curve</span><i>→</i><span>Distribute Points (Poisson Disk)</span><i>→</i><span>Raycast: when does the growing edge reach each source?</span><i>→</i><span>Repeat Zone</span>
+  </div>
+  <p>Each pass of the Repeat Zone is one step of the paper's algorithm:</p>
+  <ol>
+    <li>Sources that the growing leaf has reached switch on.</li>
+    <li>Each active source finds its closest vein node with <b>Sample Nearest</b>.</li>
+    <li><b>Accumulate Field</b>, grouped by that node, adds up the directions to its sources.</li>
+    <li>A short segment is instanced from each node in that direction, realized, and welded on with <b>Merge by Distance</b>.</li>
+    <li>Sources within Kill Distance of a vein are deleted with <b>Geometry Proximity</b>.</li>
+  </ol>
+  <p>After the loop, <b>Shortest Edge Paths</b> and <b>Edge Paths to Curves</b> count how many vein tips each node feeds. The radius is <code>Tip Radius × count^(1/n)</code>, which is Murray's law (rⁿ of a parent = the sum of rⁿ of its children) when all tips are equal. The veins then become curves and tubes.</p>
+</section>
+
+<section id="help">
+  <h2>Troubleshooting</h2>
+  <div class="tablewrap"><table>
+    <tr><th>Problem</th><th>Fix</th></tr>
+    <tr><td>Only the blade appears, with no veins</td><td>Move Base onto the outline or inside it. Check the curve is closed and lies flat in XY.</td></tr>
+    <tr><td>Veins stop short of the edge</td><td>Raise Iterations</td></tr>
+    <tr><td>Veins are too thick or invisible</td><td>Scale Tip Radius and Blade Thickness with your leaf size (Step 4)</td></tr>
+    <tr><td>The leaf is slow to update</td><td>Raise Segment Length or Kill Distance, lower Iterations, or turn off Smooth Veins while you adjust</td></tr>
+    <tr><td>Node groups are missing or red</td><td>Use Blender 4.2 or newer. Repeat Zones need 4.0, and the file was saved in 4.2.</td></tr>
+    <tr><td>The texture looks shifted</td><td>The blade's UVMap fits the outline's bounding square. Use it unchanged, with no other UV unwrap.</td></tr>
+  </table></div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>Based on Adam Runions, Martin Fuhrer, Brendan Lane, Pavol Federl, Anne-Gaëlle Rolland-Lagan and Przemyslaw Prusinkiewicz, <a href="https://doi.org/10.1145/1073204.1073251">Modeling and visualization of leaf venation patterns</a>, ACM Transactions on Graphics 24(3), 702–711 (SIGGRAPH 2005). An independent implementation, not affiliated with or endorsed by the authors. Also available <a href="../">for Grasshopper</a>.</p>
+    <p>© 2026 Siavash Tohidi. MIT License.</p>
+  </div>
+</footer>
+
+</body>
+</html>
