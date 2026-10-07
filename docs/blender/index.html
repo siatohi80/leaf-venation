@@ -69,9 +69,10 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:.9rem}
   <div class="wrap">
     <div class="brand"><img src="img/icon48.png" alt="">Geometry Nodes for Blender 4.2 and later</div>
     <h1>Leaf Venation for Blender</h1>
-    <p class="lead">Grow realistic leaf veins with Geometry Nodes, change them live from the modifier panel, animate them growing, and render them as 3D veins or as a texture.</p>
+    <p class="lead">Grow realistic leaf veins with Geometry Nodes, on a leaf or over any object. Change them live from the modifier panel, animate them growing, and render them as 3D veins or as a texture.</p>
     <div class="buttons">
-      <a class="btn primary" href="downloads/leaf_venation_demo.blend" download>Download the demo file (.blend)</a>
+      <a class="btn primary" href="downloads/leaf_venation-1.0.0.zip" download>Download the add-on (.zip)</a>
+      <a class="btn secondary" href="downloads/leaf_venation_demo.blend" download>Download the demo file (.blend)</a>
       <a class="btn secondary" href="downloads/leaf_vein_textures.zip" download>Download the vein textures</a>
       <a class="btn secondary" href="../">Grasshopper version</a>
     </div>
@@ -80,7 +81,7 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:.9rem}
 
 <nav class="toc" aria-label="Tutorial steps">
   <div class="wrap">
-    <a href="#overview">Overview</a><a href="#open">1 Open the demo</a><a href="#presets">2 Presets</a>
+    <a href="#overview">Overview</a><a href="#addon">Add-on</a><a href="#objects">Veins on objects</a><a href="#open">1 Open the demo</a><a href="#presets">2 Presets</a>
     <a href="#settings">3 Settings</a><a href="#own">4 Your own leaf</a><a href="#look">5 Veins and blade</a>
     <a href="#animate">6 Animate</a><a href="#texture">7 Textures</a><a href="#how">How it works</a><a href="#help">Troubleshooting</a>
   </div>
@@ -90,15 +91,56 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:.9rem}
 
 <section id="overview">
   <h2>Overview</h2>
-  <p>Veins grow the way they do in real leaves. Vein tips grow toward hormone sources scattered in the blade, and each source disappears once a vein reaches it. This follows Runions et al., SIGGRAPH 2005. The whole simulation runs inside a Geometry Nodes <b>Repeat Zone</b>, so there is no add-on to install and no script to run. Everything ships as node groups inside one .blend file.</p>
+  <p>Veins grow the way they do in real leaves. Vein tips grow toward hormone sources scattered in the blade, and each source disappears once a vein reaches it. This follows Runions et al., SIGGRAPH 2005. The whole simulation runs inside a Geometry Nodes <b>Repeat Zone</b>. You can use it two ways: install the <a href="#addon">add-on</a>, which adds leaves and grows veins over any mesh from a sidebar panel, or open the <a href="#open">demo file</a>, where everything ships as node groups.</p>
   <figure><img src="img/banner.jpg" alt="Three rendered leaves: open veins, looping veins, and a textured blade"><figcaption>Open veins grown in Geometry Nodes, looping veins, and a flat blade with a vein texture.</figcaption></figure>
   <div class="tablewrap"><table>
     <tr><th>Node group</th><th>Put it on</th><th>What it does</th></tr>
     <tr><td>Leaf Venation</td><td>A closed curve (the leaf outline)</td><td>Grows the veins and builds the tapered vein tubes and the leaf blade</td></tr>
     <tr><td>Leaf Venation Skin</td><td>A vein mesh</td><td>Builds the tubes and blade only. The looped presets 3 and 4 use it.</td></tr>
+    <tr><td>Leaf Venation Surface</td><td>Any mesh object</td><td>Grows veins over the object's surface and adds them as tapered tubes</td></tr>
     <tr><td>Leaf Venation Grow</td><td>(used inside the others)</td><td>The growth loop on its own. Its output is a vein mesh with <code>age</code> and <code>root</code> attributes.</td></tr>
     <tr><td>Leaf Venation Skin Core</td><td>(used inside the others)</td><td>Murray's-law vein widths, tubes and blade</td></tr>
   </table></div>
+</section>
+
+<section id="addon">
+  <h2>Install the add-on</h2>
+  <ol>
+    <li>Download <a href="downloads/leaf_venation-1.0.0.zip" download><code>leaf_venation-1.0.0.zip</code></a>. Don't unzip it.</li>
+    <li>In Blender 4.2 or newer, open <i>Edit › Preferences › Get Extensions</i>, click the small arrow at the top right and choose <b>Install from Disk</b>. Pick the zip. You can also drag the zip into the Blender window.</li>
+    <li>In the 3D Viewport, press <kbd>N</kbd> and open the <b>Leaf</b> tab.</li>
+  </ol>
+  <div class="tablewrap"><table>
+    <tr><th>Button</th><th>What it does</th></tr>
+    <tr><td>Add Leaf</td><td>Adds one of the six presets at the 3D cursor. Also in <i>Add › Leaf (Venation)</i>. In the Adjust Last Operation panel, set the leaf's size, the random seed, or <b>Looped Veins</b> to grow closed loops with the Python simulator.</td></tr>
+    <tr><td>Add Veins to Selected</td><td>Grows veins over every selected mesh. See <a href="#objects">Veins on objects</a>.</td></tr>
+    <tr><td>Start at 3D Cursor</td><td>Moves the start of the veins on the active object to the 3D cursor</td></tr>
+    <tr><td>Bake Vein Texture</td><td>Writes a PNG vein texture for a flat leaf and wires it into its blade material (Step 7)</td></tr>
+  </table></div>
+  <p>When the active object has veins, the panel also shows its most-used settings. Every setting is in the <b>Modifier</b> panel, like the steps below describe.</p>
+</section>
+
+<section id="objects">
+  <h2>Veins on any object</h2>
+  <figure><img src="img/addon_objects.jpg" alt="Veins grown over a tube, a monkey head, a sphere and a leaf"><figcaption>Veins grown over a tube, Suzanne and a sphere with <b>Add Veins to Selected</b>, next to a flat preset leaf.</figcaption></figure>
+  <ol>
+    <li>Click on the surface where the veins should start, which places the 3D cursor there (<kbd>Shift</kbd>+right-click).</li>
+    <li>Select one or more mesh objects and click <b>Add Veins to Selected</b>.</li>
+    <li>In the Adjust Last Operation panel, choose <b>Start</b> (3D Cursor or Lowest Point) and <b>Detail</b>. Higher detail gives finer veins and takes longer.</li>
+  </ol>
+  <p>Distances are scaled to the object's size, so the first result is usually close. Then change it in the modifier:</p>
+  <div class="tablewrap"><table>
+    <tr><th>Input</th><th>What it changes</th></tr>
+    <tr><td>Start</td><td>Where the first vein starts, in object space. It snaps to the surface.</td></tr>
+    <tr><td>Mask</td><td>Name of a vertex group. Veins only grow where its weight is above 0.5. Paint the group in Weight Paint mode.</td></tr>
+    <tr><td>Growth</td><td>0 places every source at once. 1 lets the vein field spread out from Start, which gives long main veins.</td></tr>
+    <tr><td>Kill Distance, Source Spacing, Segment Length</td><td>The same as on a leaf (Step 3), in the object's units</td></tr>
+    <tr><td>Tip Radius, Murray Exponent</td><td>Vein thickness (Step 5)</td></tr>
+    <tr><td>Vein Lift</td><td>1 sets the veins on the surface, 0 sinks them halfway, and negative values sink them further.</td></tr>
+    <tr><td>Show Object</td><td>Off outputs the veins alone</td></tr>
+  </table></div>
+  <figure><img src="img/addon_suzanne.jpg" alt="Close-up of veins on Suzanne"><figcaption>Veins started under the chin and spread over the head.</figcaption></figure>
+  <p>The mesh needs faces. The veins follow the surface, so they can wrap around edges, but they move in straight steps between nodes, which can cut through very thin parts. On those parts, raise Detail or lower Segment Length. Applying the object's scale first (<kbd>Ctrl</kbd>+<kbd>A</kbd> › Scale) keeps the distances easy to read.</p>
 </section>
 
 <section id="open">
@@ -232,6 +274,8 @@ footer{padding:32px 0 48px;color:var(--muted);font-size:.9rem}
     <tr><td>Veins stop short of the edge</td><td>Raise Iterations</td></tr>
     <tr><td>Veins are too thick or invisible</td><td>Scale Tip Radius and Blade Thickness with your leaf size (Step 4)</td></tr>
     <tr><td>The leaf is slow to update</td><td>Raise Segment Length or Kill Distance, lower Iterations, or turn off Smooth Veins while you adjust</td></tr>
+    <tr><td>The Leaf tab is missing</td><td>Check the add-on is enabled under <i>Preferences › Add-ons</i>, and that you use Blender 4.2 or newer</td></tr>
+    <tr><td>Veins on an object stop early or stay in one area</td><td>Raise Iterations, or set Growth to 0. Check that Mask is empty or names a vertex group that exists.</td></tr>
     <tr><td>Node groups are missing or red</td><td>Use Blender 4.2 or newer. Repeat Zones need 4.0, and the file was saved in 4.2.</td></tr>
     <tr><td>The texture looks shifted</td><td>The blade's UVMap fits the outline's bounding square. Use it unchanged, with no other UV unwrap.</td></tr>
   </table></div>

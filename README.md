@@ -3,7 +3,7 @@
 Tutorial and downloads for the Leaf Venation Grasshopper plugin (Rhino 8):
 https://siatohi80.github.io/leaf-venation/
 
-The Blender Geometry Nodes version and its tutorial are at
+The Blender version (Geometry Nodes add-on, also grows veins on any mesh) and its tutorial are at
 https://siatohi80.github.io/leaf-venation/blender/
 
 This repository holds only the website. The site is in `docs/`.
